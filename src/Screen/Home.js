@@ -12,6 +12,7 @@ import {
   Card,
 } from "react-bootstrap";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import * as XLSX from "xlsx"; // Import XLSX for Excel export
 
 export default function Home() {
   const [bills, setBills] = useState([]);
@@ -22,7 +23,7 @@ export default function Home() {
   const [totalUserPay, setTotalUserPay] = useState(0);
   const [totalUserNotPay, setTotalUserNotPay] = useState(0);
   const [shopName, setShopName] = useState("");
-  const [isClick, setIsClick] = useState(false); // State to manage edit/save mode
+  const [isClick, setIsClick] = useState(false);
 
   const nav = useNavigate();
 
@@ -39,7 +40,6 @@ export default function Home() {
       setBills(storeBills);
       setFilteredBills(storeBills);
     }
-    // Load shop name from local storage
     const storedShopName = localStorage.getItem("shop_name");
     if (storedShopName) {
       setShopName(storedShopName);
@@ -89,13 +89,26 @@ export default function Home() {
 
   const handleShopName = () => {
     if (isClick) {
-      // Save mode
       localStorage.setItem("shop_name", shopName);
-      setIsClick(false); // Switch back to edit mode
+      setIsClick(false);
     } else {
-      // Edit mode
-      setIsClick(true); // Switch to save mode
+      setIsClick(true);
     }
+  };
+
+  const handleExport = () => {
+    const exportData = filteredBills.map((bill, index) => ({
+      No: index + 1,
+      Date: bill.date,
+      Name: bill.name,
+      Amount: bill.amount,
+      Payment_Status: bill.paymentStatus,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bills");
+    XLSX.writeFile(workbook, "bills.xlsx");
   };
 
   return (
@@ -103,24 +116,27 @@ export default function Home() {
       {/* Header Section */}
       <div className="bg-light p-4 rounded shadow-sm mb-4">
         <Row className="align-items-center">
-          
-          {isClick ? <Col className="text-center">
-            <input
-              type="text"
-              value={shopName}
-              onChange={(e) => setShopName(e.target.value)}
-              className="form-control shadow-sm"
-              readOnly={!isClick} // Make input read-only when not in edit mode
-            />
-          </Col> :
-          <Col className="text-center">
-          <h2>{shopName}</h2>
-        </Col>}
-
+          {isClick ? (
+            <Col className="text-center">
+              <input
+                type="text"
+                value={shopName}
+                onChange={(e) => setShopName(e.target.value)}
+                className="form-control shadow-sm"
+                readOnly={!isClick}
+              />
+            </Col>
+          ) : (
+            <Col className="text-center">
+              <h2>{shopName}</h2>
+            </Col>
+          )}
           <Col className="col-auto ms-auto">
             <OverlayTrigger
               placement="top"
-              overlay={<Tooltip>{isClick ? "Save Shop Name" : "Edit Shop Name"}</Tooltip>}
+              overlay={
+                <Tooltip>{isClick ? "Save Shop Name" : "Edit Shop Name"}</Tooltip>
+              }
             >
               <Button
                 variant="primary"
@@ -135,9 +151,9 @@ export default function Home() {
         </Row>
       </div>
 
-      {/* Search and Filter Section */}
+      {/* Search, Filter, and Export Section */}
       <Row className="mb-4 align-items-center">
-        <Col md={6} className="mb-2">
+        <Col md={5} className="mb-2">
           <Form.Control
             type="text"
             placeholder="Search by name"
@@ -146,7 +162,7 @@ export default function Home() {
             className="shadow-sm"
           />
         </Col>
-        <Col md={3} className="mb-2">
+        <Col md={2} className="mb-2">
           <Form.Select
             value={filterOption}
             onChange={handleFilterChange}
@@ -156,6 +172,15 @@ export default function Home() {
             <option value="date">Date</option>
             <option value="amount">Amount</option>
           </Form.Select>
+        </Col>
+        <Col md={2} className="mb-2">
+          <Button
+            variant="secondary"
+            onClick={handleExport}
+            className="shadow-sm"
+          >
+            <i className="bi bi-file-earmark-excel me-2"></i>Export to Excel
+          </Button>
         </Col>
         <Col md={3} className="text-end">
           <Button
@@ -266,9 +291,7 @@ export default function Home() {
           </tbody>
         </Table>
       ) : (
-        <div className="alert alert-warning text-center shadow-sm" role="alert">
-          No bills available. Please add a new bill.
-        </div>
+        <h5 className="text-center mt-5 text-muted">No bills found</h5>
       )}
     </div>
   );
