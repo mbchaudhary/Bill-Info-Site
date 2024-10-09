@@ -1,35 +1,62 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Table, Button, Form, Row, Col, Tooltip, OverlayTrigger } from 'react-bootstrap';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  Table,
+  Button,
+  Form,
+  Row,
+  Col,
+  Tooltip,
+  OverlayTrigger,
+  Badge,
+  Card,
+} from "react-bootstrap";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function Home() {
   const [bills, setBills] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredBills, setFilteredBills] = useState([]);
   const [filterOption, setFilterOption] = useState("");
+  const [totalUser, setTotalUser] = useState(0);
+  const [totalUserPay, setTotalUserPay] = useState(0);
+  const [totalUserNotPay, setTotalUserNotPay] = useState(0);
+  const [shopName, setShopName] = useState("");
+  const [isClick, setIsClick] = useState(false); // State to manage edit/save mode
 
   const nav = useNavigate();
 
   useEffect(() => {
     const storeBills = JSON.parse(localStorage.getItem("list"));
     if (storeBills) {
+      setTotalUser(storeBills.length);
+      setTotalUserPay(
+        storeBills.filter((bill) => bill.paymentStatus === "Pay").length
+      );
+      setTotalUserNotPay(
+        storeBills.filter((bill) => bill.paymentStatus === "NotPay").length
+      );
       setBills(storeBills);
       setFilteredBills(storeBills);
+    }
+    // Load shop name from local storage
+    const storedShopName = localStorage.getItem("shop_name");
+    if (storedShopName) {
+      setShopName(storedShopName);
     }
   }, []);
 
   const handleEdit = (index) => {
-    localStorage.setItem('EditDataIndex', index);
-    localStorage.setItem('isEdit', true);
-    nav('/add_bill');
+    localStorage.setItem("EditDataIndex", index);
+    localStorage.setItem("isEdit", true);
+    nav("/add_bill");
   };
 
   const handleDelete = (index) => {
     const updatedBills = bills.filter((_, i) => i !== index);
     setBills(updatedBills);
     setFilteredBills(updatedBills);
-    localStorage.setItem('list', JSON.stringify(updatedBills));
+    localStorage.setItem("list", JSON.stringify(updatedBills));
   };
 
   const handleSearch = (e) => {
@@ -45,12 +72,14 @@ export default function Home() {
   };
 
   const filterBills = (term, option) => {
-    let filtered = bills.filter(bill =>
+    let filtered = bills.filter((bill) =>
       bill.name.toLowerCase().includes(term)
     );
 
     if (option === "amount") {
-      filtered = filtered.sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount));
+      filtered = filtered.sort(
+        (a, b) => parseFloat(a.amount) - parseFloat(b.amount)
+      );
     } else if (option === "date") {
       filtered = filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
     }
@@ -58,12 +87,56 @@ export default function Home() {
     setFilteredBills(filtered);
   };
 
+  const handleShopName = () => {
+    if (isClick) {
+      // Save mode
+      localStorage.setItem("shop_name", shopName);
+      setIsClick(false); // Switch back to edit mode
+    } else {
+      // Edit mode
+      setIsClick(true); // Switch to save mode
+    }
+  };
+
   return (
     <div className="container mt-5">
-      <h2 className="text-center mb-4">Bill Management</h2>
+      {/* Header Section */}
+      <div className="bg-light p-4 rounded shadow-sm mb-4">
+        <Row className="align-items-center">
+          
+          {isClick ? <Col className="text-center">
+            <input
+              type="text"
+              value={shopName}
+              onChange={(e) => setShopName(e.target.value)}
+              className="form-control shadow-sm"
+              readOnly={!isClick} // Make input read-only when not in edit mode
+            />
+          </Col> :
+          <Col className="text-center">
+          <h2>{shopName}</h2>
+        </Col>}
+
+          <Col className="col-auto ms-auto">
+            <OverlayTrigger
+              placement="top"
+              overlay={<Tooltip>{isClick ? "Save Shop Name" : "Edit Shop Name"}</Tooltip>}
+            >
+              <Button
+                variant="primary"
+                onClick={handleShopName}
+                size="sm"
+                className="shadow-sm"
+              >
+                {isClick ? "Save" : "Edit"}
+              </Button>
+            </OverlayTrigger>
+          </Col>
+        </Row>
+      </div>
 
       {/* Search and Filter Section */}
-      <Row className="mb-4 justify-content-center align-items-center">
+      <Row className="mb-4 align-items-center">
         <Col md={6} className="mb-2">
           <Form.Control
             type="text"
@@ -74,22 +147,64 @@ export default function Home() {
           />
         </Col>
         <Col md={3} className="mb-2">
-          <Form.Select value={filterOption} onChange={handleFilterChange} className="shadow-sm">
+          <Form.Select
+            value={filterOption}
+            onChange={handleFilterChange}
+            className="shadow-sm"
+          >
             <option value="">Sort by</option>
             <option value="date">Date</option>
             <option value="amount">Amount</option>
           </Form.Select>
         </Col>
         <Col md={3} className="text-end">
-          <Button variant="primary" onClick={() => nav('/add_bill')} className="shadow-sm">
+          <Button
+            variant="primary"
+            onClick={() => nav("/add_bill")}
+            className="shadow-sm"
+          >
             <i className="bi bi-plus-circle me-2"></i>Add New Bill
           </Button>
         </Col>
       </Row>
 
+      {/* Total Customers and Bill-Pay Section */}
+      <Row className="mb-4">
+        <Col md={4}>
+          <Card className="text-white text-center shadow-sm border-0 bg-info">
+            <Card.Body>
+              <Card.Title>Total Customers</Card.Title>
+              <h2 className="card-text">{totalUser}</h2>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="text-white text-center shadow-sm border-0 bg-success">
+            <Card.Body>
+              <Card.Title>Total Bill Paid</Card.Title>
+              <h2 className="card-text">{totalUserPay}</h2>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="text-white text-center shadow-sm border-0 bg-danger">
+            <Card.Body>
+              <Card.Title>Total Bill Not Paid</Card.Title>
+              <h2 className="card-text">{totalUserNotPay}</h2>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
       {/* Bill Table */}
       {filteredBills.length > 0 ? (
-        <Table striped bordered hover responsive className="shadow-sm text-center">
+        <Table
+          striped
+          bordered
+          hover
+          responsive
+          className="shadow-sm text-center table-striped"
+        >
           <thead className="table-dark">
             <tr>
               <th>No.</th>
@@ -109,9 +224,12 @@ export default function Home() {
                 <td>{bill.name}</td>
                 <td className="fw-bold text-success">${bill.amount}</td>
                 <td>
-                  <span className={`badge ${bill.paymentStatus === 'Pay' ? 'bg-success' : 'bg-danger'}`}>
+                  <Badge
+                    pill
+                    bg={bill.paymentStatus === "Pay" ? "success" : "danger"}
+                  >
                     {bill.paymentStatus}
-                  </span>
+                  </Badge>
                 </td>
                 <td>
                   <OverlayTrigger

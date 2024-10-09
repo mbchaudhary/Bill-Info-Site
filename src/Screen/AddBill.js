@@ -63,97 +63,101 @@ export default function AddBill() {
 
   return (
     <div className="bg-light min-vh-100 d-flex justify-content-center align-items-center">
-      <div className="container mt-5">
-        <div className="card shadow-lg border-0 rounded-4" style={{ backgroundColor: '#ffffff' }}>
-          <div className="card-header bg-primary text-white rounded-top-4 py-3">
-            <div className="d-flex justify-content-between align-items-center">
-              <h4 className="mb-0">{isEdit ? 'Edit Bill' : 'Add New Bill'}</h4>
-              <button className="btn btn-light text-primary" onClick={() => nav('/')}>
-                <i className="bi bi-arrow-left"></i> Back
-              </button>
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="col-lg-8">
+            <div className="card shadow-lg border-0 rounded-4">
+              <div className="card-header bg-primary text-white rounded-top-4 py-3">
+                <div className="d-flex justify-content-between align-items-center">
+                  <h4 className="mb-0">{isEdit ? 'Edit Bill' : 'Add New Bill'}</h4>
+                  <button className="btn btn-light text-primary" onClick={() => nav('/')}>
+                    <i className="bi bi-arrow-left"></i> Back
+                  </button>
+                </div>
+              </div>
+
+              <div className="card-body p-4">
+                <form onSubmit={handleSubmit}>
+                  {/* Bill Number */}
+                  <div className="mb-4">
+                    <label htmlFor="billNo" className="form-label fw-bold">Bill No.</label>
+                    <input
+                      type="text"
+                      className="form-control shadow-sm"
+                      id="billNo"
+                      value={billNo}
+                      disabled
+                    />
+                  </div>
+
+                  {/* Date and Name */}
+                  <div className="row mb-4">
+                    <div className="col-md-6">
+                      <label htmlFor="date" className="form-label fw-bold">Date</label>
+                      <input
+                        type="date"
+                        className="form-control shadow-sm"
+                        id="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        max={getCurrentDate()}
+                        required
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label htmlFor="name" className="form-label fw-bold">Name</label>
+                      <input
+                        type="text"
+                        className="form-control shadow-sm"
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter name"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Amount and Payment Status */}
+                  <div className="row mb-4">
+                    <div className="col-md-6">
+                      <label htmlFor="amount" className="form-label fw-bold">Amount</label>
+                      <input
+                        type="number"
+                        className="form-control shadow-sm"
+                        id="amount"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="Enter amount"
+                        required
+                        min="0"
+                      />
+                    </div>
+
+                    <div className="col-md-6">
+                      <label htmlFor="paymentStatus" className="form-label fw-bold">Payment Status</label>
+                      <select
+                        className="form-select shadow-sm"
+                        id="paymentStatus"
+                        value={paymentStatus}
+                        onChange={(e) => setPaymentStatus(e.target.value)}
+                      >
+                        <option value="NotPay">Not Paid</option>
+                        <option value="Pay">Paid</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="d-grid">
+                    <button type="submit" className="btn btn-primary btn-lg shadow-sm">
+                      {isEdit ? 'Save Changes' : 'Add Bill'}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </div>
-
-          <div className="card-body p-4">
-            <form onSubmit={handleSubmit}>
-              {/* Bill Number */}
-              <div className="mb-3">
-                <label htmlFor="billNo" className="form-label">Bill No.</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="billNo"
-                  value={billNo}
-                  disabled
-                />
-              </div>
-
-              {/* Date and Name */}
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <label htmlFor="date" className="form-label">Date</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    id="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    max={getCurrentDate()}
-                    required
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <label htmlFor="name" className="form-label">Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter name"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Amount and Payment Status */}
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <label htmlFor="amount" className="form-label">Amount</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    id="amount"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="Enter amount"
-                    required
-                    min="0" // Ensure amount is positive
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <label htmlFor="paymentStatus" className="form-label">Payment Status</label>
-                  <select
-                    className="form-select"
-                    id="paymentStatus"
-                    value={paymentStatus}
-                    onChange={(e) => setPaymentStatus(e.target.value)}
-                  >
-                    <option value="NotPay">Not Paid</option>
-                    <option value="Pay">Paid</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="d-grid">
-                <button type="submit" className="btn btn-primary btn-lg shadow-sm">
-                  {isEdit ? 'Save Changes' : 'Add Bill'}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       </div>
